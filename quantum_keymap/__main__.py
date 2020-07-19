@@ -12,7 +12,7 @@ def main():
     conf = load_config(default_conf)
     model = KeymapModel(conf)
 
-    text_path = Path("sample/alice.txt")
+    text_path = Path("text/alice.txt")
 
     weight = {
         "w_1hot": 3000,
