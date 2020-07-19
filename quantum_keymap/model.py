@@ -112,8 +112,10 @@ class KeymapModel(object):
     def _energy_key_unique(self, state, weight):
         return weight * (state @ self.H_key_unique @ state + self.const_key_unique)
 
-    def _energy_key_unique(self, qbits, weight):
-        return qbits @ (weight * self.H_key_unique) @ qbits
+    def validate(self, state):
+        return bool(self._energy_1hot(state, 1) == 0) and bool(
+            self._energy_key_unique(state, 1) == 0
+        )
 
     def qubo(self, w_1hot, w_key_unique):
         H, _ = self.H(w_1hot, w_key_unique)
