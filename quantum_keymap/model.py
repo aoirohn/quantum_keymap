@@ -13,14 +13,14 @@ class KeymapModel(object):
         self.config.update(config)
 
         self.key_to_code = {}
-        for i, key in self.config["KEY_LIST"]:
+        for i, key in enumerate(self.config["KEY_LIST"]):
             if isinstance(key, Iterable):
                 for item in key:
                     self.key_to_code[item] = i
             else:
                 self.key_to_code[key] = i
 
-        self.code_to_key = {v: k for k, v in self.config["CHAR_ID"].items()}
+        self.code_to_key = {v: k for k, v in self.key_to_code.items()}
 
         self.N = np.array(self.config["HAND"]).size
         self.J = np.zeros((self.N * self.N, self.N * self.N))

@@ -11,7 +11,7 @@ def load_config(module: ModuleType):
         "CONSECUTIVE_HAND_COST",
         "CONSECUTIVE_FINGER_COST",
         "CONSECUTIVE_KEY_COST",
-        "KEY_ID",
+        "KEY_LIST",
     ]:
         if key in vars(module):
             dic[key] = vars(module)[key]
