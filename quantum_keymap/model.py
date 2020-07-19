@@ -24,8 +24,8 @@ class KeymapModel(object):
 
         self.N = np.array(self.config["HAND"]).size
         self.J = np.zeros((self.N * self.N, self.N * self.N))
-        self.H_1hot = self._create_H_1hot()
-        self.H_key_unique = self._create_H_key_unique()
+        self.H_1hot, self.const_1hot = self._create_H_1hot()
+        self.H_key_unique, self.const_key_unique = self._create_H_key_unique()
 
         chars = "".join([key.lower() for key in self.key_to_code.keys()])
         self.p = re.compile(f"[{chars}]+")
@@ -82,7 +82,7 @@ class KeymapModel(object):
                 H[key, char1][key, char1] = -1
                 for char2 in range(char1 + 1, self.N):
                     H[key, char1][key, char2] = 2
-        return H.reshape((self.N * self.N, self.N * self.N))
+        return H.reshape((self.N * self.N, self.N * self.N)), self.N
 
     def _create_H_key_unique(self):
         H = np.zeros((self.N, self.N, self.N, self.N))
@@ -92,27 +92,31 @@ class KeymapModel(object):
                 H[key1, char][key1, char] = -1
                 for key2 in range(key1 + 1, self.N):
                     H[key1, char][key2, char] = 2
-        return H.reshape((self.N * self.N, self.N * self.N))
+        return H.reshape((self.N * self.N, self.N * self.N)), self.N
 
     def H(self, w_1hot, w_key_unique):
         H = self.J + w_1hot * self.H_1hot + w_key_unique * self.H_key_unique
-        return H
+        const = w_1hot * self.const_1hot + w_key_unique * self.const_key_unique
+        return H, const
 
-    def energy(self, qbits, w_1hot, w_key_unique):
-        H = self.H(w_1hot, w_key_unique)
-        return qbits @ H @ qbits
+    def energy(self, state, w_1hot, w_key_unique):
+        H, const = self.H(w_1hot, w_key_unique)
+        return state @ H @ state + const
 
-    def cost(self, qbits):
-        return qbits @ self.J @ qbits
+    def cost(self, state):
+        return state @ self.J @ state
 
-    def _energy_1hot(self, qbits, weight):
-        return qbits @ (weight * self.H_1hot) @ qbits
+    def _energy_1hot(self, state, weight):
+        return weight * (state @ self.H_1hot @ state + self.const_1hot)
+
+    def _energy_key_unique(self, state, weight):
+        return weight * (state @ self.H_key_unique @ state + self.const_key_unique)
 
     def _energy_key_unique(self, qbits, weight):
         return qbits @ (weight * self.H_key_unique) @ qbits
 
     def qubo(self, w_1hot, w_key_unique):
-        H = self.H(w_1hot, w_key_unique)
+        H, _ = self.H(w_1hot, w_key_unique)
         H = np.triu(H, k=1) + np.triu(H.T)
 
         qubo = {}
