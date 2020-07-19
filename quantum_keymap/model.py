@@ -4,6 +4,7 @@ import re
 import numpy as np
 
 import quantum_keymap.config.default as default_conf
+from quantum_keymap.util import list_concat
 from quantum_keymap.util import load_config
 
 
@@ -35,19 +36,19 @@ class KeymapModel(object):
         text = text.lower()
         result = self.p.findall(text)
 
-        position_cost = self.config["POSITION_COST"]
-        hand = self.config["HAND"]
-        finger = self.config["FINGER"]
+        position_cost = list_concat(self.config["POSITION_COST"])
+        hand = list_concat(self.config["HAND"])
+        finger = list_concat(self.config["FINGER"])
         consecutive_hand_cost = self.config["CONSECUTIVE_HAND_COST"]
         consecutive_finger_cost = self.config["CONSECUTIVE_FINGER_COST"]
         consecutive_key_cost = self.config["CONSECUTIVE_KEY_COST"]
 
         for string in result:
             # position cost
-            for char in string:
-                code = self.key_to_code[char]
+            for char_raw in string:
+                char = self.key_to_code[char_raw]
                 for key in range(self.N):  # key position
-                    J_sub[key][code] += position_cost[key]
+                    J_sub[key, char][key, char] += position_cost[key]
 
             # hand/finger cost
             for pos in range(len(string) - 1):

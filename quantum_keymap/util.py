@@ -1,4 +1,5 @@
 from types import ModuleType
+from itertools import chain
 
 
 def load_config(module: ModuleType):
@@ -17,3 +18,8 @@ def load_config(module: ModuleType):
             dic[key] = vars(module)[key]
 
     return dic
+
+
+def list_concat(lists):
+    return list(chain.from_iterable(lists))
+
