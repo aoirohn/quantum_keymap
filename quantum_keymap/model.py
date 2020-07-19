@@ -9,9 +9,10 @@ from quantum_keymap.util import load_config
 
 
 class KeymapModel(object):
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config=None) -> None:
         self.config = load_config(default_conf)
-        self.config.update(config)
+        if config:
+            self.config.update(config)
 
         self.key_to_code = {}
         for i, key in enumerate(self.config["KEY_LIST"]):
