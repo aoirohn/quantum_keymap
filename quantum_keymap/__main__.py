@@ -22,7 +22,8 @@ def main():
         "beta": 0.01,
         "gamma": 1000,
         "num_sweeps": 10000,
-        "num_reads": 100,
+        "trotter": 4,
+        "num_reads": 10,
     }
 
     logger = Logger(Path("result"), model)

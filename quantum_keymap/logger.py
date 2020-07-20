@@ -21,6 +21,7 @@ class Logger(object):
                     "beta",
                     "gamma",
                     "num_sweeps",
+                    "trotter",
                     "num_reads",
                     "energy_avg",
                     "energy_std",
@@ -46,13 +47,12 @@ class Logger(object):
                 annealing_params["beta"],
                 annealing_params["gamma"],
                 annealing_params["num_sweeps"],
+                annealing_params["trotter"],
                 annealing_params["num_reads"],
                 np.average(energies),
                 np.std(energies),
                 np.min(energies),
                 sum(valids),
-                "cost_min",
-                "keys",
             ]
             values_str = [str(v) for v in values]
             f.write(",".join(values_str) + ",")
