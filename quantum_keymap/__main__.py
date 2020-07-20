@@ -15,15 +15,15 @@ def main():
     text_path = Path("text/alice.txt")
 
     weight = {
-        "w_1hot": 3000,
-        "w_key_unique": 3000,
+        "w_1hot": 2200,
+        "w_key_unique": 2100,
     }
     annealing_params = {
-        "beta": 0.01,
-        "gamma": 1000,
-        "num_sweeps": 10000,
+        "beta": 0.02,
+        "gamma": 100,
+        "num_sweeps": 100000,
         "trotter": 4,
-        "num_reads": 10,
+        "num_reads": 100,
     }
 
     logger = Logger(Path("result"), model)
