@@ -1,7 +1,11 @@
 # quantum_keymap
-keymap generator using quantum annealing
+Keymap generator using simulated quantum annealing.
 
-## install
+## Sample result
+
+![quantum_keymap_v0.0](sample/quantum_keymap_v0.0.png)
+
+## Install
 install libraries with poetry.
 
 ```shell
