@@ -9,9 +9,10 @@ from quantum_keymap.util import load_config
 
 
 class KeymapModel(object):
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config=None) -> None:
         self.config = load_config(default_conf)
-        self.config.update(config)
+        if config:
+            self.config.update(config)
 
         self.key_to_code = {}
         for i, key in enumerate(self.config["KEY_LIST"]):
@@ -24,7 +25,7 @@ class KeymapModel(object):
         self.code_to_key = {v: k for k, v in self.key_to_code.items()}
 
         self.N = np.array(self.config["HAND"]).size
-        self.J = np.zeros((self.N * self.N, self.N * self.N))
+        self.H_obj = np.zeros((self.N * self.N, self.N * self.N))
         self.H_1hot, self.const_1hot = self._create_H_1hot()
         self.H_key_unique, self.const_key_unique = self._create_H_key_unique()
 
@@ -32,7 +33,7 @@ class KeymapModel(object):
         self.p = re.compile(f"[{chars}]+")
 
     def update_weight(self, text):
-        J_sub = np.zeros((self.N, self.N, self.N, self.N))
+        H_sub = np.zeros((self.N, self.N, self.N, self.N))
         text = text.lower()
         result = self.p.findall(text)
 
@@ -48,7 +49,7 @@ class KeymapModel(object):
             for char_raw in string:
                 char = self.key_to_code[char_raw]
                 for key in range(self.N):  # key position
-                    J_sub[key, char][key, char] += position_cost[key]
+                    H_sub[key, char][key, char] += position_cost[key]
 
             # hand/finger cost
             for pos in range(len(string) - 1):
@@ -59,21 +60,21 @@ class KeymapModel(object):
 
                         # add finger cost
                         if hand[key1] == hand[key2]:
-                            J_sub[key1, char1][key2, char2] += consecutive_hand_cost
+                            H_sub[key1, char1][key2, char2] += consecutive_hand_cost
 
                             # add finger cost
                             if finger[key1] == finger[key2]:
                                 if char1 == char2:
-                                    J_sub[key1, char1][
+                                    H_sub[key1, char1][
                                         key2, char2
                                     ] += consecutive_key_cost
                                 else:
-                                    J_sub[key1, char1][
+                                    H_sub[key1, char1][
                                         key2, char2
                                     ] += consecutive_finger_cost
 
-        J_sub = J_sub.reshape((self.N * self.N, self.N * self.N))
-        self.J += J_sub
+        H_sub = H_sub.reshape((self.N * self.N, self.N * self.N))
+        self.H_obj += H_sub
 
     def _create_H_1hot(self):
         H = np.zeros((self.N, self.N, self.N, self.N))
@@ -96,7 +97,7 @@ class KeymapModel(object):
         return H.reshape((self.N * self.N, self.N * self.N)), self.N
 
     def H(self, w_1hot, w_key_unique):
-        H = self.J + w_1hot * self.H_1hot + w_key_unique * self.H_key_unique
+        H = self.H_obj + w_1hot * self.H_1hot + w_key_unique * self.H_key_unique
         const = w_1hot * self.const_1hot + w_key_unique * self.const_key_unique
         return H, const
 
@@ -105,7 +106,7 @@ class KeymapModel(object):
         return state @ H @ state + const
 
     def cost(self, state):
-        return state @ self.J @ state
+        return state @ self.H_obj @ state
 
     def _energy_1hot(self, state, weight):
         return weight * (state @ self.H_1hot @ state + self.const_1hot)
